@@ -42,28 +42,29 @@ void printOrders(std::deque<std::deque<Order>>& outMarketMatches)
     }
     std::cout<<std::endl;
 }
-
-
-int main()
+void printHelpMessage()
 {
-    //std::ifstream inputFile;
-    //inputFile.open("../input.txt", std::ios::in);
+    std::cout<<"There are the following commands"<<std::endl;
+    std::cout<<"\tYou can provide inputs of orders directly."<<std::endl;
+    std::cout<<"\tOther keywords which program understands are"<<std::endl;
+    std::cout<<"\t\tshow - will show the result"<<std::endl;
+    std::cout<<"\t\texit - will finish the program"<<std::endl;
+    std::cout<<"\t\tfile - will read inputs from ../inputs.txt file"<<std::endl;
+}
 
+template <typename T>
+void startProcessing(std::string& cmdInput, T& stream)
+{
     OrderBook myOrderBook;
     std::deque<std::deque<Order>> outMarketMatches;
-    std::string cmdInput;
-    std::vector<std::string> words;
-    std::vector<Order> inputData;
     std::vector<std::string> attributes;
 
-    while (std::getline(std::cin, cmdInput))
-    //while(std::getline(inputFile, cmdInput))
-    {
+    do {
         if (cmdInput == "exit")
         {
             // Show the market state and return
             std::cout<<"exited"<<std::endl;
-            return 0;
+            return ;
         }
         else if (cmdInput == "show")
         {
@@ -77,6 +78,27 @@ int main()
             matchEngine(myOrderBook, newOrder, outMarketMatches);
             attributes.clear();
         }
+    } while (std::getline(stream, cmdInput));
+}
+
+int main()
+{
+    printHelpMessage();
+
+    std::string cmdInput;
+
+    std::getline(std::cin, cmdInput);
+
+    if(cmdInput == "file")
+    {
+        std::ifstream inputFile;
+        inputFile.open("../input.txt", std::ios::in);
+        std::getline(inputFile, cmdInput);
+        startProcessing<std::ifstream>(cmdInput, inputFile);
     }
+    else{
+        startProcessing<std::istream>(cmdInput, std::cin);
+    }
+
     return 0;
 }
