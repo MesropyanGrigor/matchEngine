@@ -1,5 +1,7 @@
 #include "order_book.hpp"
 
+// Order class implementation
+
  void Order::print() const
  {
     std::cout<<"Order("<<getTrader()<<", "<<getSide()<<", "<<getQuantity()<<", "<<getPrice()<<")";
@@ -15,6 +17,29 @@
 bool Order::isBuy() const
 {
     return getSide() == 'B';
+}
+
+bool Order::isMatch(const Order& rhs)
+{
+    if (isBuy())
+    {
+        return this->price >= rhs.getPrice();
+    }
+    else
+    {
+        return this->price <= rhs.getPrice();
+    }
+
+}
+
+void Order::setPrice(std::uint32_t value)
+{
+    price = value;
+}
+
+void Order::setQuantity(std::uint32_t value)
+{
+    quantity = value;
 }
 
 bool Order::operator==(const Order& rhs) const
@@ -43,12 +68,12 @@ std::uint32_t Order::getPrice() const
     return price;
 }
 
-std::deque<Order>& OrderBook::getBuyersOrders()
+OrderBook::buyersType& OrderBook::getBuyersOrders()
 {
     return buyersOrders;
 }
 
-std::deque<Order>& OrderBook::getSellersOrders()
+OrderBook::sellersType& OrderBook::getSellersOrders()
 {
     return sellersOrders;
 }
@@ -61,10 +86,22 @@ void OrderBook::addOrder(const Order& newOrder)
 
     if (newOrder.getSide() == 'S')
     {
-        sellersOrders.push_back(newOrder);
+        sellersOrders.push(newOrder);
     }
     else if(newOrder.getSide() == 'B')
     {
-        buyersOrders.push_back(newOrder);
+        buyersOrders.push(newOrder);
     }
+}
+
+// Implementation of comparision functor classes
+
+bool orderLess::operator()(const Order& lhs, const Order& rhs) const
+{
+    return lhs.getPrice() > rhs.getPrice();
+}
+
+bool orderGreater::operator()(const Order& lhs, const Order& rhs) const
+{
+    return lhs.getPrice() < rhs.getPrice();
 }

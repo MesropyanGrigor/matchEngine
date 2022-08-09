@@ -6,6 +6,8 @@
 #include <fstream>
 #include "engine.hpp"
 #include "order_book.hpp"
+#include "order_matches.hpp"
+#include <regex>
 
 void fillVector(const std::string& line, std::vector<std::string>& attributes)
 {
@@ -31,17 +33,13 @@ void fillVector(const std::string& line, std::vector<std::string>& attributes)
 
 }
 
-void printOrders(std::deque<std::deque<Order>>& outMarketMatches)
+bool isValidInputLine(std::string& line)
 {
-    auto _print = [](auto& it){it.printOutputFormat(); std::cout<<"     ";};
-    std::cout<<std::endl<<"Outputing the final results"<<std::endl;
-    for (auto matches : outMarketMatches)
-    {
-        std::for_each(matches.begin(), matches.end(), _print);
-        std::cout<<std::endl;
-    }
-    std::cout<<std::endl;
+    // Checking the input order string validity
+    // This is a heavy operation and can be improved using a simple iterration
+    return std::regex_match(line, std::regex("T[0-9]+ *(B|S) *[0-9]+ *[0-9]+[ \n]*"));
 }
+
 void printHelpMessage()
 {
     std::cout<<"There are the following commands"<<std::endl;
@@ -56,7 +54,7 @@ template <typename T>
 void startProcessing(std::string& cmdInput, T& stream)
 {
     OrderBook myOrderBook;
-    std::deque<std::deque<Order>> outMarketMatches;
+    OrderMatches outMarketMatches;
     std::vector<std::string> attributes;
 
     do {
@@ -68,11 +66,11 @@ void startProcessing(std::string& cmdInput, T& stream)
         }
         else if (cmdInput == "show")
         {
-            //std::cout<<cmdInput<<std::endl;
-            printOrders(outMarketMatches);
+            outMarketMatches.showMatches();
         }
         else
         {
+            if (!isValidInputLine(cmdInput)) continue;
             fillVector(cmdInput, attributes);
             Order newOrder(attributes);
             matchEngine(myOrderBook, newOrder, outMarketMatches);

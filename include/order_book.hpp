@@ -2,6 +2,7 @@
 #include <queue>
 #include <stdio.h>
 #include <iostream>
+#include <queue>
 #include <deque>
 
 #pragma once
@@ -25,6 +26,10 @@ class Order {
 
         bool isBuy() const;
 
+        bool isMatch(const Order& rhs);
+
+        void setPrice(std::uint32_t value);
+        void setQuantity(std::uint32_t value);
 
         bool operator==(const Order& rhs) const;
         
@@ -44,18 +49,45 @@ class Order {
         void printOutputFormat() const;
 };
 
+class orderLess
+{
+    public:
+    bool operator()(const Order& lhs, const Order& rhs) const;
+};
+
+class orderGreater
+{
+    public:
+    bool operator()(const Order& lhs, const Order& rhs) const;
+};
+
+template<class T, class Container, class Compare>
+class myPriorityQueue: public std::priority_queue<T, Container, Compare>
+{
+    public:
+        inline Container& getContainer()
+        {
+            return this->c;
+        }
+};
+
 class OrderBook
 {
     private:
-        std::deque<Order> sellersOrders;
-        std::deque<Order> buyersOrders;
+        typedef myPriorityQueue<Order, std::deque<Order>, orderLess> sellersType;
+        typedef myPriorityQueue<Order, std::deque<Order>, orderGreater> buyersType;
+
+
+    private:
+        sellersType sellersOrders;
+        buyersType buyersOrders;
 
     public:
         OrderBook() = default;
 
-        std::deque<Order>& getSellersOrders();
+        sellersType& getSellersOrders();
 
-        std::deque<Order>& getBuyersOrders();
+        buyersType& getBuyersOrders();
 
         void addOrder(const Order& newOrder);
 };

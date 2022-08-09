@@ -2,6 +2,7 @@
  #include <deque>
  #include "order_book.hpp"
  #include "engine.hpp"
+ #include "order_matches.hpp"
 
 void checkOrder(const Order& newOrder)
 {
@@ -19,40 +20,43 @@ void output(auto & aa)
 {
     auto _outputing = [](auto& it){it.print(); std::cout<<"----";};
     std::for_each(aa.begin(), aa.end(), _outputing);
-    //for(auto it : aa )
-    //{
-        //it.print();
-        //std::cout<<"----";
-    //}
     std::cout<<std::endl;
 }
 
- void matchEngine(OrderBook& myOrderBook, Order& newOrder, std::deque<std::deque<Order>>& marketMatches)
+ void matchEngine(OrderBook& myOrderBook, Order& newOrder, OrderMatches& marketMatches, bool pa)
  {
     std::cout<<"Processing Order: "; newOrder.print(); std::cout<<std::endl;
     checkOrder(newOrder); 
 
-    std::deque<Order>& orders = newOrder.getSide() == 'B' ? myOrderBook.getSellersOrders() : myOrderBook.getBuyersOrders();
+    auto& orders = newOrder.getSide() == 'B' ? myOrderBook.getSellersOrders().getContainer() : myOrderBook.getBuyersOrders().getContainer();
+    output(orders);
 
     for (std::size_t i=0; i < orders.size(); i++)
     {
         Order& tmpOrder = orders[i];
 
-        if(newOrder.getPrice() == tmpOrder.getPrice())
+        if(newOrder.isMatch(tmpOrder))
         {
             if (newOrder.getQuantity() == tmpOrder.getQuantity())
             {
-                marketMatches.push_back(std::deque<Order>({newOrder, orders[i]}));
+                // updating newOrder price by resting order value
+
+                newOrder.setPrice(tmpOrder.getPrice());
+
+                marketMatches.addMatch(newOrder, orders[i], pa);
 
                 orders.erase(orders.begin()+i);
                 return ;
             }
             else if(newOrder.getQuantity() < tmpOrder.getQuantity())
             {
+
+                newOrder.setPrice(tmpOrder.getPrice());
+
                 Order extarctedOrder(tmpOrder.getTrader(), tmpOrder.getSide(),
                                      newOrder.getQuantity(), tmpOrder.getPrice());
 
-                marketMatches.push_back(std::deque<Order>({newOrder, extarctedOrder}));
+                marketMatches.addMatch(newOrder, extarctedOrder, pa);
 
                 tmpOrder-newOrder.getQuantity();
                 return;
@@ -60,15 +64,13 @@ void output(auto & aa)
             else if(newOrder.getQuantity() > tmpOrder.getQuantity())
             {
                 newOrder - tmpOrder.getQuantity();
-                Order extarctedOrder(newOrder.getTrader(), newOrder.getSide(),
-                                     tmpOrder.getQuantity(), newOrder.getPrice());
-                marketMatches.push_back(std::deque<Order>({extarctedOrder, tmpOrder}));
-                //output(orders);
-                orders.erase(orders.begin()+i);
 
-                matchEngine(myOrderBook, newOrder, marketMatches);
+                Order extarctedOrder(newOrder.getTrader(), newOrder.getSide(),
+                                     tmpOrder.getQuantity(), tmpOrder.getPrice());
+                marketMatches.addMatch(extarctedOrder, tmpOrder, pa);
+                orders.erase(orders.begin()+i);
+                matchEngine(myOrderBook, newOrder, marketMatches, true);
                 return;
-           //     break;
             }
         }
         
