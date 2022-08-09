@@ -26,11 +26,10 @@ void OrderMatches::addMatch(const Order& agressorOrder, const Order& restingOrde
             lastMatch[i].setQuantity(lastMatch[i].getQuantity() + restingOrder.getQuantity()); 
             isAddedResting = true;
         }
-
-        // Will be usefull to define insertion order 
-        if (!isAddedAgressor) lastMatch.push_back(agressorOrder);
-        if (!isAddedResting) lastMatch.push_back(restingOrder);
     }
+    // Will be usefull to define insertion order 
+    if (!isAddedAgressor) lastMatch.push_back(agressorOrder);
+    if (!isAddedResting) lastMatch.push_back(restingOrder);
 }
 
 void printOrders( const std::deque<std::deque<Order>>& outMarketMatches)

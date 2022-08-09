@@ -29,7 +29,6 @@ void output(auto & aa)
     checkOrder(newOrder); 
 
     auto& orders = newOrder.getSide() == 'B' ? myOrderBook.getSellersOrders().getContainer() : myOrderBook.getBuyersOrders().getContainer();
-    output(orders);
 
     for (std::size_t i=0; i < orders.size(); i++)
     {
