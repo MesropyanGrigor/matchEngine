@@ -1,13 +1,26 @@
 #include "order_matches.hpp"
 
+
+bool OrderSort::operator()(const Order& lhs, const Order& rhs) const
+{
+
+    std::string str1 = lhs.getTrader() + lhs.getSide() + std::to_string(lhs.getPrice());
+    std::string str2 = rhs.getTrader() + rhs.getSide() + std::to_string(rhs.getPrice());
+    return str1 > str2;
+}
+
 void OrderMatches::addMatch(const Order& agressorOrder, const Order& restingOrder, bool previousAddition)
 {
     if (!previousAddition)
     {
-        _data.push_back(std::deque<Order>{agressorOrder, restingOrder});
+        OrderMatches::Container firstMatches;
+        firstMatches.push(agressorOrder);
+        firstMatches.push(restingOrder);
+        _data.push_back(std::move(firstMatches));
         return;
-    }    
-    std::deque<Order>& lastMatch = _data.back();
+    }   
+    OrderMatches::Container& lastElement = _data.back();
+    std::deque<Order>& lastMatch = lastElement.getContainer();
 
     bool isAddedAgressor = false;
     bool isAddedResting = false;
@@ -27,18 +40,18 @@ void OrderMatches::addMatch(const Order& agressorOrder, const Order& restingOrde
             isAddedResting = true;
         }
     }
-    // Will be usefull to define insertion order 
-    if (!isAddedAgressor) lastMatch.push_back(agressorOrder);
-    if (!isAddedResting) lastMatch.push_back(restingOrder);
+    if (!isAddedResting) lastElement.push(restingOrder);
+    if (!isAddedAgressor) lastElement.push(agressorOrder);
 }
 
-void printOrders( const std::deque<std::deque<Order>>& outMarketMatches)
+
+void printOrders(const auto& outMarketMatches)
 {
     auto _print = [](auto& it){it.printOutputFormat(); std::cout<<"     ";};
     std::cout<<std::endl<<"Outputing the final results"<<std::endl;
     for (auto matches : outMarketMatches)
     {
-        std::for_each(matches.begin(), matches.end(), _print);
+        std::for_each(matches.getContainer().begin(), matches.getContainer().end(), _print);
         std::cout<<std::endl;
     }
     std::cout<<std::endl;

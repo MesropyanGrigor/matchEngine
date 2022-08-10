@@ -3,10 +3,16 @@
 
 #pragma once
 
+class OrderSort{
+    public:
+        bool operator()(const Order& lhs, const Order& rhs) const;
+};
+
 class OrderMatches{
 
     private:
-    std::deque<std::deque<Order>> _data;
+        typedef myPriorityQueue<Order, std::deque<Order>, OrderSort> Container;
+        std::deque<Container> _data;
 
     // insert a new match
     public:
